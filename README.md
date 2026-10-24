@@ -1,118 +1,162 @@
 # 📟 Codex Pager 4G
 
-**A pocket-sized, retro-style pager for supervising AI coding agents.**
+**A retro-inspired, standalone wireless pager for AI agent notifications, usage monitoring, and human approvals.**
 
 > The AI works. The pager calls. The human decides.
 
-**Project status:** 🟡 Concept / planning  
-**Founded:** 24 October 2026  
-**Hardware target:** ESP32-S3 + color display + buzzer + buttons + optional 4G LTE modem  
-**Connectivity:** Wi-Fi first, cellular when available  
-**Current phase:** Project definition; **not yet a working hardware or software implementation**.
+[中文文档](README.zh-CN.md)
 
-## Why build this?
+## Overview
 
-AI coding agents can run tasks autonomously, but users still need to monitor usage limits, review permission requests, and know when attention is needed. Checking an app's nested usage screen repeatedly is inconvenient. A dedicated physical device makes the most important information glanceable and keeps human approval under human control.
+Codex Pager 4G is an open-source hardware and software project that brings the classic pager into the age of AI agents.
 
-Codex Pager 4G reimagines a classic pager as a **human-in-the-loop companion** for an AI coding agent.
+Built around an ESP32-based microcontroller, the device combines a retro pager-style enclosure with modern wireless connectivity, a color display, physical buttons, and audible notifications.
 
-## Planned features
+It is designed to act as a dedicated companion for Codex and potentially other AI agents, allowing users to monitor activity, receive notifications, and respond to permission requests without constantly checking their computers.
 
-- **At-a-glance dashboard:** five-hour and weekly usage/remaining allowance, reset countdown, and any available reset actions, **only when legitimately exposed by the source system**.
-- **Quota notifications:** retro *beep-beep-beep* on exhaustion (`😐🤲`), another alert when recovery is **confirmed** (`😋`).
-- **Permission requests:** see the actual requested action and context; manually **Approve** or **Deny** each request. Denial reaction: `😭`.
-- **Task status notifications:** pending, running, completed, blocked, failed.
-- **Classic pager interface:** compact 3D-printed enclosure, physical keys, optional status LED, battery operation.
-- **Two network paths:** ESP32-S3 Wi-Fi and optional cellular through a compatible 4G modem and SIM interface.
-- **Low-data operation:** local countdown between syncs; compact events rather than continuous polling.
+**Project status:** Concept & Planning
 
-### The signature interaction
+**Project initiated:** October 24, 2026
 
-| Event | Alert | UI reaction |
+## Key Features (Planned)
+
+### 📊 Real-Time Usage Dashboard
+
+- Display remaining 5-hour and weekly usage limits.
+- Show the next usage reset time and countdown.
+- Display usage status at a glance.
+- Automatically refresh information when available.
+
+### 🔔 Pager-Style Notifications
+
+Classic three-beep pager alerts for important events:
+
+| Event | Display | Notification |
 |---|---|---|
-| Five-hour allowance exhausted | Three retro beeps | `😐🤲` |
-| Five-hour allowance confirmed replenished | Three retro beeps | `😋` |
-| Permission needs review | Three retro beeps | `🥺` + command/details |
-| Permission denied | Short feedback tone (TBD) | `😭` |
-| Permission approved | Short feedback tone (TBD) | `😎` |
+| Usage exhausted | 😐🤲 | Three-beep alert |
+| Usage reset | 😋 | Three-beep alert |
+| Permission requested | 🥺 | Three-beep alert |
+| Permission denied | 😭 | Visual feedback |
+| Task completed | ✅ | Configurable notification |
+| Agent error | ⚠️ | Warning notification |
 
-Notifications should be deduplicated to avoid repeated alerts; a countdown reaching zero **does not** by itself prove an allowance has reset.
+Events and expressions may be customized in future versions.
 
-## Proposed hardware (not final)
+### ✅ Physical Permission Controls
 
-| Component | Candidate / requirement |
+The device is designed to support human-in-the-loop agent workflows.
+
+- Review pending permission requests.
+- Approve or deny requests using physical buttons.
+- Display the command or action being requested.
+- Require explicit user confirmation.
+- Redirect complex or potentially dangerous requests to the computer for detailed review.
+
+**Permissions are never automatically approved by the pager.**
+
+### 📡 Wireless Connectivity
+
+The planned device supports two connectivity options:
+
+- **Wi-Fi:** Built-in wireless networking through the ESP32 microcontroller.
+- **4G LTE:** An optional integrated cellular modem with a SIM card slot for standalone mobile connectivity.
+
+The goal is to provide notifications and status monitoring even when the user is away from their computer or local Wi-Fi network.
+
+Cellular modem selection, network compatibility, and power consumption will be evaluated during development.
+
+### 🎨 Retro Hardware Design
+
+- Classic 1990s pager-inspired appearance.
+- Custom 3D-printed enclosure.
+- Compact color display supporting emoji graphics.
+- Physical navigation and confirmation buttons.
+- Retro-style buzzer.
+- Rechargeable battery.
+- Portable, pocket-friendly form factor.
+
+## Proposed Hardware
+
+| Component | Planned Specification |
 |---|---|
-| MCU | ESP32-S3 (2.4 GHz Wi-Fi + BLE) |
-| Display | ~1.5–2.0 inch color TFT, readable emoji graphics |
-| Audio | Passive buzzer or small speaker; vintage three-beep pattern |
-| Input | Physical navigation, approve and deny buttons, accidental-approval prevention |
-| Cellular | 4G LTE Cat-1 bis class modem with UART/USB interface (model TBD) |
-| SIM | Nano-SIM; eUICC adapter (5ber / ESTK) compatibility **to be tested** |
-| Power | Rechargeable lithium battery, protected charging/power circuitry, low-power design |
-| Enclosure | Custom 3D-printed 1990s-style pager with belt clip |
+| Main controller | ESP32-S3 |
+| Display | Color TFT / IPS display |
+| Wireless | 2.4 GHz Wi-Fi |
+| Cellular | 4G LTE modem with SIM card slot |
+| User input | Physical buttons |
+| Audio | Buzzer |
+| Power | Rechargeable lithium battery |
+| Enclosure | Custom 3D-printed pager shell |
 
-**Emoji design note:** Target an Apple-like visual experience where lawfully available, but do not redistribute Apple's proprietary emoji artwork in the repository. Display glyphs/assets must have suitable rights for redistribution.
+Specifications are preliminary and subject to change.
 
-## Architecture (proposal)
-
-```mermaid
-flowchart LR
-    A[Codex / Agent integration] --> B[Local bridge / trusted backend]
-    B <-->|Authenticated events & decisions| C[ESP32-S3 pager]
-    C --- W[Wi-Fi]
-    C --- L[Optional 4G LTE modem]
-    H[Human reviewer] -->|Physical approve / deny| C
-```
-
-The integration may require a local companion app, supported hooks, or a custom bridge. **Do not assume that Codex exposes a remote approval or exact quota API.** A safe fallback is notification-only with approval on the computer.
-
-## Human control is a feature
-
-- Never automatically approve permission requests.
-- Show the **exact action, scope, target, and relevant risk** before approval, not just a friendly summary.
-- If the request cannot be reviewed fully on the screen, **require review on the computer**.
-- Protect remote approval with authenticated, integrity-checked, single-use, expiring request IDs and explicit confirmation.
-- Default to deny / no action when disconnected, expired, or uncertain.
-
-See [Security principles](docs/security.md).
-
-## Plan
-
-1. **Phase 0 — Project charter:** scope, event definitions, architecture, risk list. *(In progress)*
-2. **Phase 1 — Wi-Fi prototype:** display, emoji states, buzzer, buttons, mocked events.
-3. **Phase 2 — Agent integration:** secure bridge, usage source, permission round trip where supported.
-4. **Phase 3 — 4G connectivity:** modem selection, cellular reconnect, data and power measurements.
-5. **Phase 4 — Enclosure:** 3D print, buttons, belt clip, PCB/power design.
-6. **Phase 5 — Field test:** reliability, alert latency, battery, roaming, safety.
-
-Detailed [roadmap](docs/roadmap.md), [requirements](docs/requirements.md), [architecture](docs/architecture.md), and [event contract](docs/event-protocol.md).
-
-## Cellular data idea
-
-A low-data cellular eSIM could make the device self-contained. Holafly Always On with an eUICC adapter is a **candidate for testing, not a verified modem-compatible or terms-compliant solution**. Confirm carrier/device terms, LTE bands, activation constraints, APN, roaming, and energy use before selecting a plan.
-
-## Repository structure
+## System Architecture
 
 ```text
-codex-pager-4g/
-├── README.md
-├── docs/
-│   ├── architecture.md
-│   ├── event-protocol.md
-│   ├── requirements.md
-│   ├── roadmap.md
-│   └── security.md
-├── firmware/README.md
-├── backend/README.md
-└── .github/ISSUE_TEMPLATE/
-    ├── feature.yml
-    └── research.yml
+        AI Agent / Codex
+                |
+                v
+       Companion Service
+                |
+         Wi-Fi / Internet
+                |
+        +-------+-------+
+        |               |
+       Wi-Fi          4G LTE
+        |               |
+        +-------+-------+
+                |
+           ESP32-S3
+                |
+     +----------+----------+
+     |          |          |
+   Display    Buzzer     Buttons
+     |                     |
+   Status              Approve /
+   & Emoji               Deny
 ```
 
-## License
+The companion service will manage agent integration, status synchronization, notification delivery, and authenticated approval requests.
 
-**No license has been selected yet.** All rights reserved until the repository owner chooses a license. Opening an issue or pull request is not permission to reuse proprietary material.
+## Design Principles
 
----
+1. **Human in control:** The user retains final authority over agent actions.
+2. **Information at a glance:** Important status information should be available immediately.
+3. **Notify only when necessary:** Avoid unnecessary interruptions.
+4. **Portable and independent:** Support operation away from the host computer.
+5. **Secure by design:** Authenticate commands, reject stale requests, and prevent accidental approvals.
+6. **Retro appearance, modern functionality:** Preserve the charm of classic pagers without sacrificing usability.
 
-**AI pages the human; the human stays in charge.** 📟
+## Development Roadmap
+
+- [x] Project concept and initial requirements
+- [ ] Hardware component selection
+- [ ] ESP32 display prototype
+- [ ] Physical buttons and buzzer
+- [ ] Usage dashboard
+- [ ] AI agent integration
+- [ ] Permission request handling
+- [ ] Wireless notification delivery
+- [ ] 4G LTE modem integration
+- [ ] Battery and power optimization
+- [ ] 3D-printed enclosure
+- [ ] Portable prototype testing
+- [ ] Initial hardware release
+
+## Important Notes
+
+This project is in the early planning stage. Hardware configurations, APIs, feature availability, and software architecture are subject to change.
+
+Some proposed features depend on supported interfaces provided by AI agent software. Integration capabilities will be verified during development.
+
+Codex Pager 4G is an independent experimental project and is not an official OpenAI product.
+
+## Project Philosophy
+
+Traditional pagers helped people stay reachable without remaining next to a telephone.
+
+Codex Pager 4G explores a similar idea for AI agents:
+
+**Let the agent work independently, and notify the human when attention or authorization is required.**
+
+📟 **Beep. Beep. Beep. The agent needs you.**
